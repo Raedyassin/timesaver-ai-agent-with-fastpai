@@ -34,7 +34,7 @@ logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
 
 
-def fetch_video_metadata(url: str) -> Dict[str, Any]:
+def _fetch_video_metadata(url: str) -> Dict[str, Any]:
     """
     Fetches metadata for a single video.
     Raises specific exceptions if fetching fails.
@@ -66,15 +66,17 @@ def fetch_video_metadata(url: str) -> Dict[str, Any]:
 
 
 def _format_transcript(transcript_obj, transcript_data: List[Dict]) -> Dict[str, Any]:
+    transcript_extra_data = " ".join(item.text for item in transcript_data)
+    clean_text = transcript_extra_data.replace("\n", "")
     return {
         "language": transcript_obj.language,
         "language_code": transcript_obj.language_code,
         "is_generated": transcript_obj.is_generated,
-        "text": " ".join(item.text for item in transcript_data),
+        "text": clean_text,
     }
 
 
-def fetch_transcript(
+def _fetch_transcript(
     video_id: str, languages: Optional[List[str]] = None
 ) -> Dict[str, Any]:
     """
@@ -109,6 +111,7 @@ def fetch_transcript(
     if result:
         return result
 
+
     # 3. Fallback to ANY available
     try:
         available_transcript = next(iter(transcript_list))
@@ -118,7 +121,7 @@ def fetch_transcript(
         raise NoTranscriptFound("No transcripts found in any language.")
 
 
-def get_video_with_metadata_transcript(url: str) -> Dict[str, Any]:
+def get_video_metadata_transcript(url: str) -> Dict[str, Any]:
     """
     Main function to fetch video data and handle all exceptions explicitly for the user.
     
@@ -138,7 +141,7 @@ def get_video_with_metadata_transcript(url: str) -> Dict[str, Any]:
 
     # --- STEP 1: FETCH METADATA ---
     try:
-        result["metadata"] = fetch_video_metadata(url)
+        result["metadata"] = _fetch_video_metadata(url)
     except ValueError as e:
         # Specific handling for the custom playlist error
         result["metadata_error"] = str(e)
@@ -160,8 +163,8 @@ def get_video_with_metadata_transcript(url: str) -> Dict[str, Any]:
     # so that a transcript failure doesn't hide the valid metadata.
     try:
         video_id = result["metadata"]["video_id"]
-        result["transcript"] = fetch_transcript(video_id)
-        
+        result["transcript"] = _fetch_transcript(video_id)
+
     except TranscriptsDisabled:
         result["transcript_error"] = "Transcripts are disabled for this video by the uploader."
     except NoTranscriptFound:
@@ -194,7 +197,7 @@ if __name__ == "__main__":
     # 4. Invalid URL
     # url = "https://www.youtube.com/watch?v=invalid_id_here"
 
-    result = get_video_with_metadata_transcript(url)
+    result = get_video_metadata_transcript(url)
 
     # --- DISPLAY RESULTS FOR USER ---
     # import json
