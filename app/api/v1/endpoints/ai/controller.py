@@ -1,11 +1,11 @@
 from .dto import SummaryRequest, SummaryResponse, ChatRequest, ChatResponse
 from .service import generate_summary, chat_with_video
-
-from fastapi import APIRouter
+from app.api.v1.endpoints.middleware.communication import get_api_key
+from fastapi import APIRouter, Depends
 
 router = APIRouter()
 
-@router.post("/summary", response_model=SummaryResponse)
+@router.post("/summary",dependencies=[Depends(get_api_key)] , response_model=SummaryResponse)
 async def summary(request: SummaryRequest):
   """
     Accepts a YouTube video URL and generates a summary.
@@ -13,7 +13,7 @@ async def summary(request: SummaryRequest):
   return await generate_summary(request.url)
 
 
-@router.post("/chat", response_model=ChatResponse)
+@router.post("/ask-question",dependencies=[Depends(get_api_key)] , response_model=ChatResponse)
 async def chat(request: ChatRequest):
   """
     Accepts a question and video_id.
