@@ -11,9 +11,9 @@ from app.ai_agents import run_summary_crew, run_qa_crew
 
 async def generate_summary(url: str):
     """
-      1. Fetches video info and transcript using utils.py.
-      2. Generates a summary using CrewAI.
-      3. Stores data in memory for chat.
+        1. Fetches video info and transcript using utils.py.
+        2. Generates a summary using CrewAI.
+        3. Stores data in memory for chat.
     """
     # 1. Fetch Data from YouTube
     video_data = get_video_metadata_transcript(url)
@@ -25,7 +25,8 @@ async def generate_summary(url: str):
         # We return metadata, but note that transcript failed
         return SummaryResponse(
             video_metadata = video_data["metadata"],
-            summary="Error: Could not generate summary because transcript is unavailable.",
+            summary="Could not generate summary because transcript is unavailable.",
+            transcript=None,
             transcript_available=False
         )
 
@@ -49,6 +50,7 @@ async def generate_summary(url: str):
     return SummaryResponse(
         video_metadata=metadata,
         summary=summary,
+        transcript=transcript_text, 
         transcript_available=True
     )
 

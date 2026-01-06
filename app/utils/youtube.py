@@ -60,7 +60,6 @@ def _fetch_video_metadata(url: str) -> Dict[str, Any]:
         "upload_date": info.get("upload_date"),
         "duration": info.get("duration"),
         "thumbnail": info.get("thumbnail"),
-        "view_count": info.get("view_count"),
         "webpage_url": info.get("webpage_url"),
     }
 

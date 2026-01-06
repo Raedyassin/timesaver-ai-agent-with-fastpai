@@ -1,11 +1,12 @@
 from pydantic import BaseModel
 
 class SummaryRequest(BaseModel):
-    url: str
+    youtubeUrl: str
 
 class SummaryResponse(BaseModel):
     video_metadata: dict
     summary: str
+    transcript: str | None
     transcript_available: bool
 
 class ChatRequest(BaseModel):

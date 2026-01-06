@@ -5,12 +5,12 @@ from fastapi import APIRouter, Depends
 
 router = APIRouter()
 
-@router.post("/summary",dependencies=[Depends(get_api_key)] , response_model=SummaryResponse)
+@router.post("/summary", dependencies=[Depends(get_api_key)] , response_model=SummaryResponse)
 async def summary(request: SummaryRequest):
   """
     Accepts a YouTube video URL and generates a summary.
   """
-  return await generate_summary(request.url)
+  return await generate_summary(request.youtubeUrl)
 
 
 @router.post("/ask-question",dependencies=[Depends(get_api_key)] , response_model=ChatResponse)
