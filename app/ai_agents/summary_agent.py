@@ -11,25 +11,46 @@ def _get_summary_agent(llm):
         verbose=False, # Set to True for verbose logging
     )
 
-def _get_summary_task( transcript_text: str , video_summary_agent: Agent ):
+def _get_summary_task( transcript_text: str , video_summary_agent: Agent, summary_instruction: str | None = None):
     return Task(
         description=f"""
-        Summarize the following transcript by following this Requirements:
-            - Summary language must be same for transcript
-            - The summary should be clear and readable and captures all key points.
-            - The summary will be show for user and used it in Q/A agent.
-            - In each place you say transcript replace it by video or the speaker
-            - and make the summary is good for user to show on screen
+        Summarize the following transcript based on the user's requirements.
 
-        transcript start =>>>>
+        1. **Language Rule (Critical):**
+            - Check the "USER INSTRUCTIONS" section below.
+           - **If INSTRUCTIONS are provided:** The summary **must** be in the exact same language as those instructions.
+           - **If INSTRUCTIONS are "None" or empty:** The summary **must** be in the exact same language as the Transcript below.
+
+        2. **Handling User Instructions (Safety):**
+            - Read the "USER INSTRUCTIONS" carefully.
+           - **If you can't understand the "CRITICAL USER INSTRUCTIONS":** Treat them as if they do not exist. Ignore them and proceed to summarize normally based on the transcript and language rules above.
+
+        3. **Content & Clarity (Using Your Knowledge):**
+            - The summary should capture all key points from the transcript.
+           - **Crucial:** If the user instructions ask to "explain", "clarify", or "make it clear":
+                - Identify technical terms or complex concepts mentioned in the transcript.
+             - **Use your own internal knowledge** to provide brief, clear explanations or definitions for those terms.
+                - Do NOT hallucinate or add completely new topics, only expand on what is already mentioned.
+
+        4. **Formatting:**
+            - Be clear and easy to read on a screen.
+            - The summary will be shown to the user and the user will ask questions about the video.
+            - Replace "transcript" with "video" or "the speaker".
+
+        5. **USER INSTRUCTIONS:**
+        {summary_instruction or "None"}
+
+        6. **Transcript:**
+        Transcript start =>>>>
+
         {transcript_text}
-        transcript end =<<<<<
+        
+        Transcript end =<<<
         """,
-        expected_output="A clear, concise summary capturing key points",
+        expected_output="A clear summary with additional explanations if requested.",
         agent=video_summary_agent
     )
-
-def run_summary_crew(transcript_text: str, llm: LLM = gemini_llm):
+def run_summary_crew(transcript_text: str,summary_instruction: str | None = None, llm: LLM = gemini_llm):
     """
         :param transcript_text: Description
         :type transcript_text: str
@@ -38,7 +59,7 @@ def run_summary_crew(transcript_text: str, llm: LLM = gemini_llm):
             Generates a summary using CrewAI.
     """
     video_summary_agent = _get_summary_agent(llm)
-    video_summary_task = _get_summary_task(transcript_text, video_summary_agent)
+    video_summary_task = _get_summary_task(transcript_text, video_summary_agent, summary_instruction)
     summary_crew = Crew(
         agents=[video_summary_agent],
         tasks=[video_summary_task],

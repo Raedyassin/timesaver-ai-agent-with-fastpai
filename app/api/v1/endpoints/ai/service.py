@@ -4,7 +4,7 @@ from .dto import SummaryResponse, ChatResponse
 from app.utils.youtube import get_video_metadata_transcript
 from app.ai_agents import run_summary_crew, run_qa_crew
 
-async def generate_summary(url: str):
+async def generate_summary(url: str, summary_instruction: str | None = None):
     """
         1. Fetches video info and transcript using utils.py.
         2. Generates a summary using CrewAI.
@@ -27,11 +27,10 @@ async def generate_summary(url: str):
 
     metadata = video_data["metadata"]
     transcript_text = video_data["transcript"]["text"]
-    video_id = metadata["video_id"]
 
     # 2. Generate Summary with CrewAI
     try:
-        summary = run_summary_crew(transcript_text)
+        summary = run_summary_crew(transcript_text, summary_instruction)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate summary: {str(e)}")
 

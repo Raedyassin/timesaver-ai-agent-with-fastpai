@@ -1,7 +1,8 @@
 from pydantic import BaseModel
 
 class SummaryRequest(BaseModel):
-    youtubeUrl: str
+    youtube_url: str
+    summary_instruction: str | None = None # Optional summary instruction
 
 class SummaryResponse(BaseModel):
     video_metadata: dict
