@@ -18,5 +18,11 @@ async def chat(request: ChatRequest):
   """
     Accepts a question and video_id.
   """
-  return await chat_with_video(request.video_id, request.question)
+
+  return await chat_with_video(
+    request.video_chat_session_id,
+    request.question, 
+    request.relative_parts_from_transcript, 
+    request.last_few_message
+  )
 

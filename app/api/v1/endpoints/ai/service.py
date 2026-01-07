@@ -1,11 +1,6 @@
 from fastapi import HTTPException
 from .dto import SummaryResponse, ChatResponse
 
-# --- In-Memory Storage ---
-# Stores video data: { "video_id": { "transcript": "...", "summary": "..." } }
-from typing import Dict, Any
-session_store: Dict[str, Dict[str, Any]] = {}
-
 from app.utils.youtube import get_video_metadata_transcript
 from app.ai_agents import run_summary_crew, run_qa_crew
 
@@ -40,13 +35,6 @@ async def generate_summary(url: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate summary: {str(e)}")
 
-    # 3. Store in Session
-    session_store[video_id] = {
-        "transcript": transcript_text,
-        "summary": summary,
-        "title": metadata["title"]
-    }
-
     return SummaryResponse(
         video_metadata=metadata,
         summary=summary,
@@ -54,26 +42,28 @@ async def generate_summary(url: str):
         transcript_available=True
     )
 
-async def chat_with_video(video_id: str, question: str):
+async def chat_with_video(
+    session_id: str,
+    question: str,
+    relative_parts_from_transcript: list[str],
+    last_few_message: list[str]
+    ):
     """
-      Accepts a question and video_id.
-      Retrieves context from session_store and answers using CrewAI.
+        Accepts a question and relative_parts_from_transcript and last_few_message 
+        from NestJS server.
     """
-    # 1. Check if video session exists
-    if video_id not in session_store:
-        raise HTTPException(status_code=404, detail="Video ID not found. Please call /summary first.")
-
-    context = session_store[video_id]
 
     # 2. Run QA Agent
     try:
         final_answer = run_qa_crew(
-            question=question, 
-            transcript=context["transcript"], 
-            summary=context["summary"]
+            session_id=session_id,
+            question=question,
+            relative_parts_from_transcript=relative_parts_from_transcript, 
+            last_few_message=last_few_message
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error during chat processing: {str(e)}")
+        print(" Error during chat processing:", str(e))
+        raise HTTPException(status_code=500, detail=f"AI serivce: Error during chat processing: {str(e)}")
 
     return ChatResponse(answer=final_answer)
 

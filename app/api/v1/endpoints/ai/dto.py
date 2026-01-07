@@ -10,8 +10,11 @@ class SummaryResponse(BaseModel):
     transcript_available: bool
 
 class ChatRequest(BaseModel):
-    video_id: str
     question: str
+    relative_parts_from_transcript: list|None
+    last_few_message: list|None
+    video_chat_session_id: str
+
 
 class ChatResponse(BaseModel):
     answer: str
