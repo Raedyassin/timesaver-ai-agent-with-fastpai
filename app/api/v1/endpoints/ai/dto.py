@@ -9,6 +9,10 @@ class SummaryResponse(BaseModel):
     summary: str
     transcript: str | None
     transcript_available: bool
+    input_tokens: int
+    output_tokens: int
+    llm_model: str
+
 
 class ChatRequest(BaseModel):
     question: str
@@ -19,3 +23,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     answer: str
+    input_tokens: int
+    output_tokens: int
+    llm_model: str
+

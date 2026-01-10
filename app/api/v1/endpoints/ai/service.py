@@ -18,11 +18,14 @@ async def generate_summary(url: str, summary_instruction: str | None = None):
     
     if video_data["transcript_error"]:
         # We return metadata, but note that transcript failed
-        return SummaryResponse(
+        return SummaryResponse (
             video_metadata = video_data["metadata"],
             summary="Could not generate summary because transcript is unavailable.",
             transcript=None,
-            transcript_available=False
+            transcript_available=False,
+            input_tokens=0,
+            output_tokens=0,
+            llm_model=""
         )
 
     metadata = video_data["metadata"]
@@ -30,15 +33,18 @@ async def generate_summary(url: str, summary_instruction: str | None = None):
 
     # 2. Generate Summary with CrewAI
     try:
-        summary = run_summary_crew(transcript_text, summary_instruction)
+        summary_crew_result = run_summary_crew(transcript_text, summary_instruction)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate summary: {str(e)}")
-
+    print("Summary generated:", summary_crew_result)
     return SummaryResponse(
         video_metadata=metadata,
-        summary=summary,
+        summary=summary_crew_result["summary"],
         transcript=transcript_text, 
-        transcript_available=True
+        transcript_available=True, 
+        input_tokens=summary_crew_result['input_tokens'],
+        output_tokens=summary_crew_result['output_tokens'],
+        llm_model=summary_crew_result['llm_model'], # input_tokens, output_tokens
     )
 
 async def chat_with_video(
@@ -54,7 +60,7 @@ async def chat_with_video(
 
     # 2. Run QA Agent
     try:
-        final_answer = run_qa_crew(
+        final_answer_result = run_qa_crew(
             session_id=session_id,
             question=question,
             relative_parts_from_transcript=relative_parts_from_transcript, 
@@ -64,5 +70,10 @@ async def chat_with_video(
         print(" Error during chat processing:", str(e))
         raise HTTPException(status_code=500, detail=f"AI serivce: Error during chat processing: {str(e)}")
 
-    return ChatResponse(answer=final_answer)
+    return ChatResponse(
+        answer=final_answer_result['answer'], 
+        input_tokens=final_answer_result['input_tokens'], 
+        output_tokens=final_answer_result['output_tokens'], 
+        llm_model=final_answer_result['llm_model']
+    )
 

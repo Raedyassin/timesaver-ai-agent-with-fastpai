@@ -66,6 +66,12 @@ def run_summary_crew(transcript_text: str,summary_instruction: str | None = None
         process=Process.sequential,
     )
     summary_result = summary_crew.kickoff()
+    metrics = summary_crew.usage_metrics
     final_summary = summary_result.raw if hasattr(summary_result, 'raw') else str(summary_result)
 
-    return final_summary
+    return {
+        'llm_model': video_summary_agent.llm.model,
+        'summary':final_summary, 
+        'input_tokens': metrics.prompt_tokens, 
+        'output_tokens':metrics.completion_tokens
+    }

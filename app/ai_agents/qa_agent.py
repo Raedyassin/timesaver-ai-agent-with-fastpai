@@ -124,6 +124,13 @@ def run_qa_crew(
     )
 
     qa_result = qa_crew.kickoff()
+    metrics = qa_result.usage_metrics
+
     final_answer = qa_result.raw if hasattr(qa_result, 'raw') else str(qa_result)
 
-    return final_answer
+    return {
+        'llm_model': qa_agent.llm.model,
+        'answer':final_answer,   
+        'input_tokens': metrics.prompt_tokens, 
+        'output_tokens':metrics.completion_tokens
+    }

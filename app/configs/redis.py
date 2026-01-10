@@ -4,9 +4,14 @@ import os
 _REDIS_HOST = os.getenv("REDIS_HOST")
 _REDIS_PORT = int(os.getenv("REDIS_PORT"))
 _REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
-# add this in production "or not _REDIS_PASSWORD"
-if not _REDIS_HOST or not _REDIS_PORT :
-    raise ValueError("REDIS configeration not found in environment variables.")
+# add this in production ""
+if os.getenv("SYSTEM_ENV") == "development":
+    if not _REDIS_HOST or not _REDIS_PORT :
+        raise ValueError("REDIS configeration not found in environment variables.")
+else:
+    if not _REDIS_HOST or not _REDIS_PORT or not _REDIS_PASSWORD:
+        raise ValueError("REDIS configeration not found in environment variables.")
+
 
 # Connect to Redis
 redis_client = redis.Redis(
