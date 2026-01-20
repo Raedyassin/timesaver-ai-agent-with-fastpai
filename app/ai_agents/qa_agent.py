@@ -124,8 +124,8 @@ def run_qa_crew(
     )
 
     qa_result = qa_crew.kickoff()
-    metrics = qa_result.usage_metrics
-
+    metrics = qa_crew.usage_metrics
+    print(metrics)
     final_answer = qa_result.raw if hasattr(qa_result, 'raw') else str(qa_result)
 
     return {
